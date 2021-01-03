@@ -1,29 +1,54 @@
-const express = require('express')
+const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 
-const genres = [
-    {
-        name: 'Action',
-        id: 1
-    },
-    {
-        name: 'Romance',
-        id: 2
-    }
-];
+mongoose.connect('mongodb://localhost/generes')
+  .then(() => console.log("Connected to MonogoDB"))
+  .catch(err => console.error("Could not connect to MongoDB", err));
 
-router.get('/', (req, res) => {
+const genreSchema = new mongoose.Schema({
+    name: String
+    // enum: ['Action', 'Thriller', 'Romance', 'Horror', 'Drama']
+});
+
+const Genre = mongoose.model('Genre', genreSchema);
+
+async function createGenre(name) {
+    const genre = new Genre({
+        name: name
+    });
+
+    const result = await genre.save();
+    console.log(result);
+}
+
+// async function getGenre(name) {
+//     const genre = await Genre.find({ name: name });
+//     console.log(genre);
+// }
+
+// async function getGenres() {
+//     genres = await Genre.find();
+//     // console.log(genres);
+// }
+
+// createGenre('Action');
+// createGenre('Romance');
+// getGenre('Action');
+
+router.get('/', async (req, res) => {
+    const genres = await Genre.find();
     res.send(genres);
 });
 
-router.get('/:id', (req, res) => {
-    const genre = genres.find(g => g.id === parseInt(req.params.id));
+router.get('/:name', async (req, res) => {
+    const genre = await Genre.find({ name: req.params.name });
     res.send(genre);
 });
 
 router.post('/', (req, res) => {
     const genre = req.body;
-    genres.push(genre);
+    createGenre(genre);
     res.send(genres);
 });
 
